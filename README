@@ -1,0 +1,38 @@
+Petrusca Bogdan-Mihai 333CB
+
+In Master deschid 4 threaduri pe care le dau sa ruleze functia "func".
+In aceasta deschid fisierul de fiecare data si incep sa caut un paragraf
+specific threadului (pt id 0 caut paragraf horror, id 1 caut comedy, etc.).
+In cazul in care gasesc atunci folosesc functia "read_buffer" pentru a citi
+paragraful si a-l adauga intr-un string. Dupa ce citesc, trimit catre workeri
+numarul de linii din paragraf, marimea paragrafului si paragraful in sine.
+Trebuie sa mentionez ca inainte sa trimit aceste informatii trimit si o 
+variabila booleana "eof" care are valoarea false pentru a sti ca masterul nu a
+terminat inca de citit. Dupa ce trimit un paragraf astept o sa primesc valoarea
+true in variabila "is_sent". In cazul in care primesc true inseamna ca s-a terminat
+de procesat paragraful si voi incepe sa fac recv la marimea si paragraful in sine.
+Dupa ce l-am primit il voi adauga intr-un vector pe pozitia status.MPI_TAG. Am utilizat
+si niste variabile de contor pentru a numara al catelea paragraf este din fisier.
+Numarul rezultat il trimit la workeri ca si tag al paragrafului. Dupa ce termin de
+citit tot fisierul voi asigna valoarii "eof" valoarea true si o voi trimite catre 
+workeri.
+
+In workeri deschid un thread caruia ii voi da functia "recv_func". Cand threadul intra
+in aceasta functie va intra direct intr-un while(1) si va cicla in acest while cat tip
+variabila "eof" are valoare false. Valoarea acestei variabile o primesc de la master
+de fiecare data cand citeste un paragraf. In while fac recv la numarul de linii,
+marimea paragrafului si paragraful in sine. Dupa ce primesc paragraful il impart pe 
+linii folosind functia "split_string". In functie de numarul de linii calculez numarul
+de threaduri. Dupa aceea creez threaduri si le dau join cat timp mai sunt linii de
+procesate in paragraf. Utilizez variabila "cont" pentru a tine cont de acest lucru si
+pe care o incrementez mereu la crearea unui thread cu 20.
+
+Threadurilor care fac procesarea le dau o structura unde voi tine diferite informatii
+utile cat si paragraful procesat si le voi da sa ruleze functia "worker_func". Aceasta
+doar  itereaza prin 20 de linii si face procesarea. La final, in join, fac append la
+liniile procesate si apoi trimit marimea si paragraful procesat catre master. Inainte
+sa trimit aceste 2 informatii mai trimit si o variabila booleana pentru a sti ca 
+paragraful a fost procesat.
+
+In master dupa ce threadurile dau join voi parcurge vectorul de paragrafe si le
+voi scrie in fisier.
